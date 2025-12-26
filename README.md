@@ -33,22 +33,27 @@ Esta API permite gestionar tareas personales con autenticación de usuarios. Con
   - Body: `{"email": "...", "password": "..."}`
   - Retorna: `{"token": "...", "user": {...}}`
 
-### Tareas (Eperan header `Authorization: Bearer <token>`)
+### Perfil de Usuario (Requiere header `Authorization: Bearer <token>`)
+- `PUT /auth/profile`: Actualizar perfil (nombre, email o contraseña).
+  - Body: `{"name": "...", "email": "...", "password": "..."}` (Todos opcionales)
+- `DELETE /auth/profile`: Eliminar cuenta de usuario permanentemente.
+
+### Tareas (Requiere header `Authorization: Bearer <token>`)
 - `GET /tasks`: Listar tareas del usuario.
   - Query params (opcionales): `status`, `due_date`, `order` (asc/desc).
 - `POST /tasks`: Crear una tarea.
   - Body: `{"title": "...", "description": "...", "status": "...", "due_date": "Y-m-d"}`
 - `GET /tasks/{id}`: Obtener detalle de una tarea.
-- `PUT /tasks/{id}`: Actualizar una tarea.
+- `PUT /tasks/{id}`: Actualizar una tarea (título, descripción, estado o fecha).
 - `DELETE /tasks/{id}`: Eliminar una tarea.
 
 ## Características Técnicas
-- **Arquitectura**: Controladores, Servicios y Repositorios.
-- **Inyección de Dependencias**: Uso de PHP-DI para desacoplamiento.
-- **Seguridad**: JWT para protección de endpoints y `password_hash` para contraseñas.
+- **Arquitectura**: Controladores, Servicios y Repositorios (Clean Architecture).
+- **Core**: Router personalizado y Contenedor de dependencias manual (Sin Frameworks).
+- **Seguridad**: JWT para protección de endpoints, `password_hash` para contraseñas y protección contra SQL Injection mediante sentencias preparadas nativas.
 - **Validación**: Validaciones de campos obligatorios y formatos en la capa de servicio.
 - **Auditoría**: Registro automático de cambios de estado en la tabla `audit_logs`.
-- **Clean Code**: Seguimiento de principios SOLID y nombres claros en español.
+- **Clean Code**: Seguimiento de principios SOLID, nombres claros en español y comentarios descriptivos.
 
 ## Pruebas
 Ejecutar el set de pruebas unitarias:
