@@ -36,12 +36,25 @@ class TaskRepository
             $params['due_date'] = $filters['due_date'];
         }
 
-        // Ordenación: Protegido contra SQL Injection mediante una lista blanca (whitelist)
+        // Ordenación
         $order = isset($filters['order']) && strtolower($filters['order']) === 'desc' ? 'DESC' : 'ASC';
         $sql .= " ORDER BY created_at $order";
 
+        // Paginación
+        $limit = isset($filters['limit']) ? (int)$filters['limit'] : 10;
+        $page = isset($filters['page']) ? (int)$filters['page'] : 1;
+        $offset = ($page - 1) * $limit;
+
+        $sql .= " LIMIT :limit OFFSET :offset";
+        
         $stmt = $this->db->prepare($sql);
-        $stmt->execute($params);
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        if (!empty($filters['status'])) $stmt->bindValue(':status', $filters['status'], PDO::PARAM_STR);
+        if (!empty($filters['due_date'])) $stmt->bindValue(':due_date', $filters['due_date'], PDO::PARAM_STR);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        
+        $stmt->execute();
         return $stmt->fetchAll();
     }
 

@@ -6,23 +6,48 @@ Esta API permite gestionar tareas personales con autenticación de usuarios. Con
 - PHP 8.1+
 - Composer
 - SQLite3
+- Docker y Docker Compose (Opcional, para ejecución en contenedores)
 
-## Instalación
+## Instalación y Configuración
 
-1. Clonar el repositorio.
-2. Instalar dependencias:
+1. **Clonar el repositorio.**
+2. **Instalar dependencias de Composer:**
    ```bash
    composer install
    ```
-3. Inicializar la base de datos (si no existe `database/database.sqlite`):
+3. **Configurar variables de entorno:**
+   Copia el archivo el archivo .env adjunto al directorio raiz del proyecto.
+
+### Opción A: Ejecución Local (PHP Nativo)
+
+1. **Inicializar y Sembrar la Base de Datos:**
    ```bash
-   sqlite3 database/database.sqlite < database/init.sql
+   php database/migrate.php
+   php database/seed.php
    ```
-4. Configurar el archivo `.env` con una clave secreta para JWT.
-5. Iniciar el servidor local:
+   *Esto creará la estructura y un usuario de prueba: `test@example.com` / `password123`.*
+
+2. **Iniciar el servidor local:**
    ```bash
    php -S localhost:8080 -t public
    ```
+
+### Opción B: Ejecución con Docker
+
+Si tienes Docker instalado y funcionando:
+
+1. **Levantar el entorno:**
+   ```bash
+   docker-compose up -d
+   ```
+2. **Ejecutar migraciones dentro del contenedor:**
+   ```bash
+   docker-compose exec app php database/migrate.php
+   docker-compose exec app php database/seed.php
+   ```
+   La API estará disponible en `http://localhost:8080`.
+
+---
 
 ## Endpoints
 
@@ -40,23 +65,36 @@ Esta API permite gestionar tareas personales con autenticación de usuarios. Con
 
 ### Tareas (Requiere header `Authorization: Bearer <token>`)
 - `GET /tasks`: Listar tareas del usuario.
-  - Query params (opcionales): `status`, `due_date`, `order` (asc/desc).
+  - Query params (opcionales): 
+    - `status`: Filtrar por estado.
+    - `due_date`: Filtrar por fecha de vencimiento (`YYYY-MM-DD`).
+    - `order`: `asc` o `desc`.
+    - `page`: Número de página (Paginación).
+    - `limit`: Cantidad de resultados por página (Paginación).
 - `POST /tasks`: Crear una tarea.
   - Body: `{"title": "...", "description": "...", "status": "...", "due_date": "Y-m-d"}`
 - `GET /tasks/{id}`: Obtener detalle de una tarea.
 - `PUT /tasks/{id}`: Actualizar una tarea (título, descripción, estado o fecha).
 - `DELETE /tasks/{id}`: Eliminar una tarea.
 
+---
+
 ## Características Técnicas
 - **Arquitectura**: Controladores, Servicios y Repositorios (Clean Architecture).
 - **Core**: Router personalizado y Contenedor de dependencias manual (Sin Frameworks).
 - **Seguridad**: JWT para protección de endpoints, `password_hash` para contraseñas y protección contra SQL Injection mediante sentencias preparadas nativas.
-- **Validación**: Validaciones de campos obligatorios y formatos en la capa de servicio.
-- **Auditoría**: Registro automático de cambios de estado en la tabla `audit_logs`.
-- **Clean Code**: Seguimiento de principios SOLID, nombres claros en español y comentarios descriptivos.
+- **Paginación**: Implementada en los endpoints de listado para manejar grandes volúmenes de datos.
+- **Auditoría**: Registro automático de cambios de estado en la tabla `audit_logs` (valor anterior y nuevo).
+- **Infraestructura**: Incluye `Dockerfile` y `docker-compose.yml` para portabilidad.
+- **Base de Datos**: Scripts de `migrate.php` y `seed.php` para gestión de esquema y datos iniciales.
 
-## Pruebas
-Ejecutar el set de pruebas unitarias:
+## Pruebas (Unitarias e Integración)
+El proyecto cuenta con una suite completa de pruebas utilizando **PHPUnit**:
+
+Ejecutar todos los tests:
 ```bash
 ./vendor/bin/phpunit
 ```
+
+- **Unitarias**: Prueban la lógica de negocio aislada en `tests/Unit`.
+- **Integración**: Prueban el flujo completo (DB + Servicios) en `tests/Integration`.

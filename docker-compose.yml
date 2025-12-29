@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+    environment:
+      - DB_PATH=database/database.sqlite
+      - JWT_SECRET=super-secret-key
+      - JWT_EXPIRATION=3600
